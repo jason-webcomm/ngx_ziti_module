@@ -14,6 +14,84 @@ static ngx_str_t ngx_ziti_thread_pool_name = ngx_string("ngx_ziti_tp");
 static ngx_ziti_block_conf_t * ngx_ziti_new_block(ngx_conf_t *cf, ngx_str_t block_name);
 static int hostname_to_ip(char * hostname , char* ip);
 
+struct ziti_ctx {
+    ziti_config config;
+    ziti_options opts;
+    ziti_controller ctrl;
+    uint32_t id;
+
+    model_map ctrl_details;
+
+    tls_context *tlsCtx;
+    struct tls_credentials id_creds;
+    struct tls_credentials session_creds;
+    char *sessionCsr;
+
+    bool closing;
+    bool enabled;
+    int ctrl_status;
+
+    ziti_auth_method_t *auth_method;
+    ziti_auth_state auth_state;
+    ziti_mfa_cb mfa_cb;
+    void *mfa_ctx;
+
+    model_map ext_signers;
+    struct oidc_client_s *ext_auth;
+    void (*ext_launch_cb)(ziti_context, const char*, void*);
+    void *ext_launch_ctx;
+
+    // HA access_token(JWT) or legacy ziti_api_session.token
+    char *session_token;
+
+    ziti_identity_data *identity_data;
+
+    bool services_loaded;
+    // map<name,ziti_service>
+    model_map services;
+    // map<service_id,ziti_session>
+    model_map sessions;
+
+    // map<service_id,*bool>
+    model_map service_forced_updates;
+
+    char *last_update;
+
+    // map<erUrl,ziti_channel>
+    model_map channels;
+    // map<id,ziti_conn>
+    model_map connections;
+
+    // map<conn_id,conn_id> -- connections waiting for a suitable channel
+    // map to make removal easier
+    model_map waiting_connections;
+
+    uint32_t conn_seq;
+
+    /* context wide metrics */
+    uint64_t start;
+    rate_t up_rate;
+    rate_t down_rate;
+
+    /* posture check support */
+    struct posture_checks *posture_checks;
+
+    /* auth query (MFA) support */
+    struct auth_queries *auth_queries;
+
+    deadline_t refresh_deadline;
+    deadline_list_t deadlines;
+
+    uv_loop_t *loop;
+    uv_timer_t deadline_timer;
+
+    uv_prepare_t prepper;
+
+    ztx_work_q w_queue;
+    uv_mutex_t w_lock;
+    uv_async_t w_async;
+};
+
 /*
  * Defines nginx module context
  */

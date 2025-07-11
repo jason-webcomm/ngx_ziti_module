@@ -324,8 +324,12 @@ static void ngx_ziti_run_service(void *data, ngx_log_t *log) {
         ngx_ziti_emerg(log, "for block %s service %s could not open server socket (%d), service thread exiting", service_ctx->block->name.data, service_ctx->service.data, server_socket);
         return;
     }
-
-    int err = Ziti_bind(server_socket, service_ctx->block->ztx, (char*)service_ctx->service.data, NULL);
+    ngx_ziti_debug(log, "service_ctx->service.len = %d", service_ctx->service.len);
+    char service_name[service_ctx->service.len + 1];
+    memcpy(service_name, service_ctx->service.data, service_ctx->service.len);
+    service_name[service_ctx->service.len] = '\0';
+    ngx_ziti_debug(log, "service_name %s", service_name);
+    int err = Ziti_bind(server_socket, service_ctx->block->ztx, service_name, NULL);
 
     if(err != ZITI_OK){
         ngx_ziti_emerg(log, "for block %s service %s could not bind server socket (%d), service thread exiting", service_ctx->block->name.data, service_ctx->service.data, err);

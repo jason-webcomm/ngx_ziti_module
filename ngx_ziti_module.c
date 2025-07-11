@@ -324,7 +324,18 @@ static void ngx_ziti_run_service(void *data, ngx_log_t *log) {
         ngx_ziti_emerg(log, "for block %s service %s could not open server socket (%d), service thread exiting", service_ctx->block->name.data, service_ctx->service.data, server_socket);
         return;
     }
+    ngx_ziti_debug(log, "server_socket: %d", server_socket);
+    ngx_ziti_debug(log, "ztx: %p", service_ctx->block->ztx);
     ngx_ziti_debug(log, "service_ctx->service.len = %d", service_ctx->service.len);
+    ngx_ziti_debug(log, "ztx->ctrl_status: %d", service_ctx->block->ztx->ctrl_status);
+    ngx_ziti_debug(log, "ztx->identity_data: %p", service_ctx->block->ztx->identity_data);
+    ngx_ziti_debug(log, "ztx->session_token: %s", service_ctx->block->ztx->session_token ? service_ctx->block->ztx->session_token : "NULL");
+    ngx_ziti_debug(log, "ztx->ctrl_details size: %d", model_map_size(&service_ctx->block->ztx->ctrl_details));
+    ngx_ziti_debug(log, "ztx->services_loaded: %d", service_ctx->block->ztx->services_loaded);
+    ngx_ziti_debug(log, "ztx->services size: %d", model_map_size(&service_ctx->block->ztx->services));
+    ngx_ziti_debug(log, "ztx->connections size: %d", model_map_size(&service_ctx->block->ztx->connections));
+
+
     char service_name[service_ctx->service.len + 1];
     memcpy(service_name, service_ctx->service.data, service_ctx->service.len);
     service_name[service_ctx->service.len] = '\0';
